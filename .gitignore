@@ -115,4 +115,5 @@ dmypy.json
 .pyre/
 
 # IDE
+.idea/
 .vscode/
