@@ -11,6 +11,7 @@ import syslog
 from datetime import datetime
 from json import dumps as json_dumps
 from Queue import Queue
+from socket import gethostname
 from sys import maxint
 
 from paho.mqtt import MQTTException
@@ -143,7 +144,13 @@ class MQTTThread(RESTThread):
         "Create the MQTT client."
         import paho.mqtt.client as mqtt
 
-        client_id = client_id or self.softwaretype
+        if client_id is None:
+            client_id = '%s@%s' % (self.softwaretype, gethostname())
+
+            syslog.syslog(
+                syslog.LOG_DEBUG,
+                "restx: %s: Using generated client ID: %s"
+                % (self.protocol_name, client_id))
 
         if protocol_version == '3.1.1':
             protocol = mqtt.MQTTv311
