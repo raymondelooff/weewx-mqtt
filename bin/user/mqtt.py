@@ -354,6 +354,7 @@ class MQTTThread(RESTThread):
         Returns the config for the given observation. Defaults
         to the default observation config.
         """
-        return self.observation_configs.get(
-            observation,
-            self.default_observation_config)
+        config = self.default_observation_config.copy()
+        config.update(self.observation_configs.get(observation, dict()))
+
+        return config
