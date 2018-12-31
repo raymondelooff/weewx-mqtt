@@ -121,7 +121,7 @@ class MQTTThread(RESTThread):
                  post_interval=None,
                  max_backlog=maxint,
                  stale=None,
-                 log_success=True,
+                 log_success=False,
                  log_failure=True,
                  timeout=10,
                  max_tries=3,
