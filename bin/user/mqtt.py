@@ -254,9 +254,6 @@ class MQTTThread(RESTThread):
 
     def process_record(self, packet, dbmanager):
         "Process record and publish to MQTT broker."
-        if self.skip_upload:
-            raise AbortedPost()
-
         # First, get the full record by querying the database ...
         if dbmanager is not None:
             record = self.get_record(packet, dbmanager)
@@ -269,6 +266,9 @@ class MQTTThread(RESTThread):
         timestamp = record.pop('dateTime')
         # ... then filter the differences ...
         record = self._diff_record(record)
+
+        if self.skip_upload:
+            raise AbortedPost()
 
         try:
             self.publish_record(timestamp, record)
