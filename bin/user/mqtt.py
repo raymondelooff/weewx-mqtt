@@ -51,12 +51,6 @@ class MQTT(StdRESTful):
                                                  'weewx/loop/%s')
         loop_qos = mqtt_config_dict.pop('loop_qos', default_qos)
         loop_retain = mqtt_config_dict.pop('loop_retain', default_retain)
-        self.loop_thread = MQTTThread(self.loop_queue,
-                                      loop_topic_format,
-                                      loop_qos,
-                                      loop_retain,
-                                      manager_dict=manager_dict,
-                                      **mqtt_config_dict)
 
         self.archive_queue = Queue()
         archive_topic_format = mqtt_config_dict.pop('archive_topic_format',
