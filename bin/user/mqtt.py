@@ -337,6 +337,7 @@ class MQTTThread(RESTThread):
         than previous observations.
         """
         result = dict()
+        result['dateTime'] = record['dateTime']
 
         for observation, value in record.iteritems():
             diff = self._diff_record_observation(observation, value)
