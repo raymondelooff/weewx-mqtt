@@ -214,14 +214,13 @@ class MQTTThread(RESTThread):
             if self.log_success is True and return_code == 0:
                 syslog.syslog(
                     syslog.LOG_INFO,
-                    "restx: %s: Connected to broker: %s on port %s..."
-                    "(return code: %d)"
-                    % (self.protocol_name, self.host, self.port, return_code))
+                    "restx: %s: Connected to broker: %s on port %s"
+                    % (self.protocol_name, self.host, self.port))
 
             if self.log_failure is True and return_code != 0:
                 syslog.syslog(
                     syslog.LOG_ERR,
-                    "restx: %s: Could not connect to broker: %s on port %s... "
+                    "restx: %s: Could not connect to broker: %s on port %s "
                     "(return code: %d)"
                     % (self.protocol_name, self.host, self.port, return_code))
 
