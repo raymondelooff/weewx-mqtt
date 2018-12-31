@@ -176,24 +176,37 @@ class MQTTThread(RESTThread):
         if tls_insecure is True:
             mqtt_client.tls_insecure_set(True)
 
+        if self.log_success is True and self.log_failure is True:
+            mqtt_client.enable_logger()
+
         return mqtt_client
 
     def connect_client(self):
         "Connect to the MQTT broker."
         syslog.syslog(
-            syslog.LOG_DEBUG,
+            syslog.LOG_INFO,
             "restx: %s: Trying to connect to broker: %s on port %s..."
             % (self.protocol_name, self.host, self.port))
 
-        self.mqtt_client.connect(self.host,
-                                 int(self.port),
-                                 int(self.keepalive))
-        self.mqtt_client.loop_start()
+        def on_connect(client, userdata, flags, return_code):
+            if self.log_success is True and return_code == 0:
+                syslog.syslog(
+                    syslog.LOG_DEBUG,
+                    "restx: %s: Connected to broker: %s on port %s..."
+                    "(return code: %d)"
+                    % (self.protocol_name, self.host, self.port, return_code))
 
-        syslog.syslog(
-            syslog.LOG_DEBUG,
-            "restx: %s: Connected to broker: %s on port %s..."
-            % (self.protocol_name, self.host, self.port))
+            if self.log_failure is True and return_code != 0:
+                syslog.syslog(
+                    syslog.LOG_ERR,
+                    "restx: %s: Could not connect to broker: %s on port %s... "
+                    "(return code: %d)"
+                    % (self.protocol_name, self.host, self.port, return_code))
+
+        self.mqtt_client.on_connect = on_connect
+
+        self.mqtt_client.connect(self.host, self.port, self.keepalive)
+        self.mqtt_client.loop_start()
 
         return self.mqtt_client
 
@@ -202,6 +215,23 @@ class MQTTThread(RESTThread):
         self.connect_client()
 
         super(MQTTThread, self).run()
+
+        def on_disconnect(client, userdata, flags, return_code):
+            if self.log_success is True and return_code == 0:
+                syslog.syslog(
+                    syslog.LOG_DEBUG,
+                    "restx: %s: Succesfully disconnected from broker: %s "
+                    "(return code: %d)"
+                    % (self.protocol_name, self.host, return_code))
+
+            if self.log_failure is True and return_code != 0:
+                syslog.syslog(
+                    syslog.LOG_ERR,
+                    "restx: %s: Unexpected disconnection from broker: %s "
+                    "(return code: %d)"
+                    % (self.protocol_name, self.host, return_code))
+
+        self.mqtt_client.on_disconnect = on_disconnect
 
         self.mqtt_client.loop_stop()
         self.mqtt_client.disconnect()
