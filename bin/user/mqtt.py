@@ -11,6 +11,7 @@ import syslog
 from datetime import datetime
 from json import dumps as json_dumps
 from Queue import Queue
+from re import sub as re_sub
 from socket import gethostname
 from sys import maxint
 
@@ -290,7 +291,7 @@ class MQTTThread(RESTThread):
         for observation, value in record.iteritems():
             observation_config = self._get_observation_config(observation)
             observation_output_name = observation_config.get(
-                'output_name', observation)
+                'output_name', self._format_observation_type(observation))
             qos = to_int(observation_config.get('qos'))
             retain = to_bool(observation_config.get('retain'))
 
@@ -372,3 +373,11 @@ class MQTTThread(RESTThread):
         config.update(self.observation_configs.get(observation, dict()))
 
         return config
+
+    def _format_observation_type(self, observation):
+        name_format = self.observation_configs.get('output_name_format')
+
+        if name_format == 'snake_case':
+            return re_sub('([A-Z]+)', r'_\1', observation).lower()
+
+        return observation
