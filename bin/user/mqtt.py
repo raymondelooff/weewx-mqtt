@@ -8,6 +8,7 @@
 __version__ = 0.1
 
 import syslog
+from copy import copy
 from datetime import datetime
 from json import dumps as json_dumps
 from Queue import Queue
@@ -260,7 +261,7 @@ class MQTTThread(RESTThread):
         if dbmanager is not None:
             record = self.get_record(packet, dbmanager)
         else:
-            record = packet
+            record = copy(packet)
 
         # ... then convert it to a proper unit system ...
         record = to_METRICWX(record)
