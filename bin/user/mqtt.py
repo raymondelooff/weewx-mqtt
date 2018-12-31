@@ -191,7 +191,7 @@ class MQTTThread(RESTThread):
         def on_connect(client, userdata, flags, return_code):
             if self.log_success is True and return_code == 0:
                 syslog.syslog(
-                    syslog.LOG_DEBUG,
+                    syslog.LOG_INFO,
                     "restx: %s: Connected to broker: %s on port %s..."
                     "(return code: %d)"
                     % (self.protocol_name, self.host, self.port, return_code))
@@ -219,7 +219,7 @@ class MQTTThread(RESTThread):
         def on_disconnect(client, userdata, flags, return_code):
             if self.log_success is True and return_code == 0:
                 syslog.syslog(
-                    syslog.LOG_DEBUG,
+                    syslog.LOG_INFO,
                     "restx: %s: Succesfully disconnected from broker: %s "
                     "(return code: %d)"
                     % (self.protocol_name, self.host, return_code))
