@@ -60,7 +60,7 @@ class MQTT(StdRESTful):
         archive_qos = mqtt_config_dict.pop('archive_qos', default_qos)
         archive_retain = mqtt_config_dict.pop('archive_retain', default_retain)
 
-        observation_configs = mqtt_config_dict.pop('observations', dict())
+        observation_configs = mqtt_config_dict.pop('observations')
 
         try:
             self.loop_thread = MQTTThread(
@@ -151,7 +151,7 @@ class MQTTThread(RESTThread):
         self.host = host
         self.port = to_int(port)
         self.keepalive = to_int(keepalive)
-        self.observation_configs = observation_configs or dict()
+        self.observation_configs = observation_configs
 
         self.current_values = dict()
         self.default_observation_config = {
@@ -365,12 +365,24 @@ class MQTTThread(RESTThread):
         Returns the config for the given observation. Defaults
         to the default observation config.
         """
+        if self.observation_configs is None:
+            return self.default_observation_config
+
+        observation_config = self.observation_configs.get(observation)
+
+        if observation_config is None:
+            return self.default_observation_config
+
         config = self.default_observation_config.copy()
-        config.update(self.observation_configs.get(observation, dict()))
+        config.update(observation_config)
 
         return config
 
     def _format_observation_type(self, observation):
+        "Formats the observation type to the preferred format type."
+        if self.observation_configs is None:
+            return observation
+
         name_format = self.observation_configs.get('output_name_format')
 
         if name_format == 'snake_case':
