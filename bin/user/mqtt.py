@@ -82,7 +82,7 @@ class MQTT(StdRESTful):
         self.loop_queue.put(event.packet)
 
     def new_archive_record(self, event):
-        self.archive_queue.put(event.packet)
+        self.archive_queue.put(event.record)
 
 
 class MQTTThread(RESTThread):
