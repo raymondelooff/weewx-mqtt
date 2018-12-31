@@ -63,15 +63,23 @@ class MQTT(StdRESTful):
                                                     'weewx/archive/%s')
         archive_qos = mqtt_config_dict.pop('archive_qos', default_qos)
         archive_retain = mqtt_config_dict.pop('archive_retain', default_retain)
+
+        self.loop_thread = MQTTThread(self.loop_queue,
+                                      loop_topic_format,
+                                      loop_qos,
+                                      loop_retain,
+                                      manager_dict=manager_dict,
+                                      **mqtt_config_dict)
+
+        self.loop_thread.start()
+        self.bind(NEW_LOOP_PACKET, self.new_loop_packet)
+
         self.archive_thread = MQTTThread(self.archive_queue,
                                          archive_topic_format,
                                          archive_qos,
                                          archive_retain,
                                          manager_dict=manager_dict,
                                          **mqtt_config_dict)
-
-        self.loop_thread.start()
-        self.bind(NEW_LOOP_PACKET, self.new_loop_packet)
 
         self.archive_thread.start()
         self.bind(NEW_ARCHIVE_RECORD, self.new_archive_record)
