@@ -43,23 +43,30 @@ class MQTT(StdRESTful):
         else:
             manager_dict = None
 
+        default_qos = mqtt_config_dict.pop('default_qos', 0)
+        default_retain = mqtt_config_dict.pop('default_retain', False)
+
         self.loop_queue = Queue()
-        loop_topic_format = mqtt_config_dict.get('loop_topic_format',
+        loop_topic_format = mqtt_config_dict.pop('loop_topic_format',
                                                  'weewx/loop/%s')
-        loop_qos = mqtt_config_dict.get('loop_qos', 0)
+        loop_qos = mqtt_config_dict.pop('loop_qos', default_qos)
+        loop_retain = mqtt_config_dict.pop('loop_retain', default_retain)
         self.loop_thread = MQTTThread(self.loop_queue,
                                       loop_topic_format,
                                       loop_qos,
+                                      loop_retain,
                                       manager_dict=manager_dict,
                                       **mqtt_config_dict)
 
         self.archive_queue = Queue()
-        archive_topic_format = mqtt_config_dict.get('archive_topic_format',
+        archive_topic_format = mqtt_config_dict.pop('archive_topic_format',
                                                     'weewx/archive/%s')
-        archive_qos = mqtt_config_dict.get('archive_qos', 1)
+        archive_qos = mqtt_config_dict.pop('archive_qos', default_qos)
+        archive_retain = mqtt_config_dict.pop('archive_retain', default_retain)
         self.archive_thread = MQTTThread(self.archive_queue,
                                          archive_topic_format,
                                          archive_qos,
+                                         archive_retain,
                                          manager_dict=manager_dict,
                                          **mqtt_config_dict)
 
@@ -123,8 +130,6 @@ class MQTTThread(RESTThread):
                                          skip_upload=skip_upload)
 
         self.topic_format = topic_format
-        self.default_qos = to_int(default_qos)
-        self.default_retain = to_bool(default_retain)
         self.host = host
         self.port = to_int(port)
         self.keepalive = to_int(keepalive)
@@ -132,8 +137,8 @@ class MQTTThread(RESTThread):
 
         self.current_values = dict()
         self.default_observation_config = {
-            'qos': self.default_qos or 0,
-            'retain': self.default_retain or False
+            'qos': to_int(default_qos),
+            'retain': to_bool(default_retain)
         }
 
         self.mqtt_client = self.create_client(client_id, protocol)
@@ -270,8 +275,8 @@ class MQTTThread(RESTThread):
             observation_config = self._get_observation_config(observation)
             observation_output_name = observation_config.get(
                 'output_name', observation)
-            qos = observation_config.get('qos')
-            retain = observation_config.get('retain')
+            qos = to_int(observation_config.get('qos'))
+            retain = to_bool(observation_config.get('retain'))
 
             topic = self.topic_format % observation_output_name
             payload['observation'] = observation_output_name
