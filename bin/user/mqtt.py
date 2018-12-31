@@ -31,11 +31,11 @@ class MQTT(StdRESTful):
     def __init__(self, engine, config_dict):
         super(MQTT, self).__init__(engine, config_dict)
 
-        mqtt_config_dict = check_enable(
-            config_dict, 'MQTT')
-
-        if mqtt_config_dict is None:
+        if check_enable(config_dict, 'MQTT') is None:
             return
+
+        mqtt_config_dict = config_dict['StdRESTful']['MQTT']
+        mqtt_config_dict.pop('enable')
 
         if 'binding' in mqtt_config_dict:
             manager_dict = get_manager_dict_from_config(
@@ -58,22 +58,36 @@ class MQTT(StdRESTful):
         archive_qos = mqtt_config_dict.pop('archive_qos', default_qos)
         archive_retain = mqtt_config_dict.pop('archive_retain', default_retain)
 
-        self.loop_thread = MQTTThread(self.loop_queue,
-                                      loop_topic_format,
-                                      loop_qos,
-                                      loop_retain,
-                                      manager_dict=manager_dict,
-                                      **mqtt_config_dict)
+        observation_configs = mqtt_config_dict.pop('observations', dict())
+
+        try:
+            self.loop_thread = MQTTThread(
+                self.loop_queue,
+                loop_topic_format,
+                loop_qos,
+                loop_retain,
+                observation_configs=observation_configs,
+                manager_dict=manager_dict,
+                **mqtt_config_dict)
+
+            self.archive_thread = MQTTThread(
+                self.archive_queue,
+                archive_topic_format,
+                archive_qos,
+                archive_retain,
+                observation_configs=observation_configs,
+                manager_dict=manager_dict,
+                **mqtt_config_dict)
+        except TypeError as e:
+            syslog.syslog(
+                syslog.LOG_ERR,
+                "restx: MQTT: Invalid values set in configuration: %s"
+                % e)
+
+            return
 
         self.loop_thread.start()
         self.bind(NEW_LOOP_PACKET, self.new_loop_packet)
-
-        self.archive_thread = MQTTThread(self.archive_queue,
-                                         archive_topic_format,
-                                         archive_qos,
-                                         archive_retain,
-                                         manager_dict=manager_dict,
-                                         **mqtt_config_dict)
 
         self.archive_thread.start()
         self.bind(NEW_ARCHIVE_RECORD, self.new_archive_record)
