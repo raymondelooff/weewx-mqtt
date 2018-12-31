@@ -81,7 +81,7 @@ class MQTTThread(RESTThread):
                  queue,
                  topic_format,
                  default_qos=0,
-                 retain=False,
+                 default_retain=False,
                  client_id=None,
                  host='localhost',
                  port=1883,
@@ -124,7 +124,7 @@ class MQTTThread(RESTThread):
 
         self.topic_format = topic_format
         self.default_qos = to_int(default_qos)
-        self.default_retain = to_bool(retain)
+        self.default_retain = to_bool(default_retain)
         self.host = host
         self.port = to_int(port)
         self.keepalive = to_int(keepalive)
