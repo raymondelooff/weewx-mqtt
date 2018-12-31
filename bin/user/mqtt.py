@@ -264,21 +264,23 @@ class MQTTThread(RESTThread):
 
         # ... then convert it to a proper unit system ...
         record = to_METRICWX(record)
+        # ... then pop the timestamp ...
+        timestamp = record.pop('dateTime')
         # ... then filter the differences ...
         record = self._diff_record(record)
 
         try:
-            self.publish_record(record)
+            self.publish_record(timestamp, record)
         except ValueError as e:
             raise FailedPost(e)
 
-    def publish_record(self, record):
+    def publish_record(self, timestamp, record):
         "Publish the given record to the MQTT broker."
-        timestamp = datetime.utcfromtimestamp(record['dateTime'])
+        formatted_timestamp = datetime.utcfromtimestamp(timestamp)
 
         payload = {
-            'timestamp': timestamp.isoformat() + '+00:00',
-            'unix_timestamp': record['dateTime']
+            'timestamp': formatted_timestamp.isoformat() + '+00:00',
+            'unix_timestamp': timestamp
         }
 
         for observation, value in record.iteritems():
@@ -331,7 +333,6 @@ class MQTTThread(RESTThread):
         than previous observations.
         """
         result = dict()
-        result['dateTime'] = record['dateTime']
 
         for observation, value in record.iteritems():
             diff = self._diff_record_observation(observation, value)
