@@ -16,8 +16,6 @@ from re import sub as re_sub
 from socket import gethostname
 from sys import maxint
 
-from paho.mqtt import MQTTException
-
 from weeutil.weeutil import to_bool, to_int
 from weewx import NEW_ARCHIVE_RECORD, NEW_LOOP_PACKET
 from weewx.manager import get_manager_dict_from_config
@@ -212,7 +210,7 @@ class MQTTThread(RESTThread):
             % (self.protocol_name, self.host, self.port))
 
         def on_connect(client, userdata, flags, return_code):
-            if self.log_failure is True and return_code != 0:
+            if return_code != 0:
                 syslog.syslog(
                     syslog.LOG_ERR,
                     "restx: %s: Could not connect to broker: %s on port %s "
@@ -233,14 +231,7 @@ class MQTTThread(RESTThread):
         super(MQTTThread, self).run()
 
         def on_disconnect(client, userdata, flags, return_code):
-            if self.log_success is True and return_code == 0:
-                syslog.syslog(
-                    syslog.LOG_INFO,
-                    "restx: %s: Succesfully disconnected from broker: %s "
-                    "(return code: %d)"
-                    % (self.protocol_name, self.host, return_code))
-
-            if self.log_failure is True and return_code != 0:
+            if return_code != 0:
                 syslog.syslog(
                     syslog.LOG_ERR,
                     "restx: %s: Unexpected disconnection from broker: %s "
@@ -302,6 +293,9 @@ class MQTTThread(RESTThread):
         Try to publish the given payload up to
         the configured number of tries.
         """
+        import paho.mqtt.client as mqtt
+        from paho.mqtt import MQTTException as PahoMQTTException
+
         try:
             payload_json = json_dumps(payload)
         except ValueError as e:
@@ -315,15 +309,22 @@ class MQTTThread(RESTThread):
 
         for _count in range(self.max_tries):
             try:
-                self.mqtt_client.publish(
+                message_info = self.mqtt_client.publish(
                     topic, payload_json, qos, retain)
 
-                # Return before raising an exception
-                return
-            except MQTTException:
+                # 0 = success, return
+                if message_info.rc == mqtt.MQTT_ERR_SUCCESS:
+                    return
+
+                error = self._parse_return_code(message_info.rc)
+
+                raise MQTTException(
+                    "Could not publish to topic '%s': %s"
+                    % (topic, error))
+            except (MQTTException, PahoMQTTException, ValueError) as e:
                 syslog.syslog(
                     syslog.LOG_DEBUG,
-                    "restx: %s: Attempt %d. MQTT Exception: %s"
+                    "restx: %s: Attempt %d. Error: %s"
                     % (self.protocol_name, _count + 1, e))
 
         raise FailedPost(e)
@@ -389,3 +390,64 @@ class MQTTThread(RESTThread):
             return re_sub('([A-Z]+)', r'_\1', observation).lower()
 
         return observation
+
+    def _parse_return_code(self, return_code):
+        "Parse the given MQTT error code into an error constant."
+        import paho.mqtt.client as mqtt
+
+        # -1
+        if return_code == mqtt.MQTT_ERR_AGAIN:
+            error = 'MQTT_ERR_AGAIN'
+        # 1
+        elif return_code == mqtt.MQTT_ERR_NOMEM:
+            error = 'MQTT_ERR_NOMEM'
+        # 2
+        elif return_code == mqtt.MQTT_ERR_PROTOCOL:
+            error = 'MQTT_ERR_PROTOCOL'
+        # 3
+        elif return_code == mqtt.MQTT_ERR_INVAL:
+            error = 'MQTT_ERR_INVAL'
+        # 4
+        elif return_code == mqtt.MQTT_ERR_NO_CONN:
+            error = 'MQTT_ERR_NO_CONN'
+        # 5
+        elif return_code == mqtt.MQTT_ERR_CONN_REFUSED:
+            error = 'MQTT_ERR_CONN_REFUSED'
+        # 6
+        elif return_code == mqtt.MQTT_ERR_NOT_FOUND:
+            error = 'MQTT_ERR_NOT_FOUND'
+        # 7
+        elif return_code == mqtt.MQTT_ERR_CONN_LOST:
+            error = 'MQTT_ERR_CONN_LOST'
+        # 8
+        elif return_code == mqtt.MQTT_ERR_TLS:
+            error = 'MQTT_ERR_TLS'
+        # 9
+        elif return_code == mqtt.MQTT_ERR_PAYLOAD_SIZE:
+            error = 'MQTT_ERR_PAYLOAD_SIZE'
+        # 10
+        elif return_code == mqtt.MQTT_ERR_NOT_SUPPORTED:
+            error = 'MQTT_ERR_NOT_SUPPORTED'
+        # 11
+        elif return_code == mqtt.MQTT_ERR_AUTH:
+            error = 'MQTT_ERR_AUTH'
+        # 12
+        elif return_code == mqtt.MQTT_ERR_ACL_DENIED:
+            error = 'MQTT_ERR_ACL_DENIED'
+        # 13
+        elif return_code == mqtt.MQTT_ERR_UNKNOWN:
+            error = 'MQTT_ERR_UNKNOWN'
+        # 14
+        elif return_code == mqtt.MQTT_ERR_ERRNO:
+            error = 'MQTT_ERR_ERRNO'
+        # 15
+        elif return_code == mqtt.MQTT_ERR_QUEUE_SIZE:
+            error = 'MQTT_ERR_QUEUE_SIZE'
+        else:
+            error = 'Unknown'
+
+        return error + ' (return code %s)' % return_code
+
+
+class MQTTException(Exception):
+    "MQTTException."
