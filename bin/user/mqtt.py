@@ -321,8 +321,9 @@ class MQTTThread(RESTThread):
                 message_id = message_info.mid
 
                 raise MQTTException(
-                    "Could not publish to topic '%s': %s"
-                    % (topic, error))
+                    "Could not publish message with ID '%d'"
+                    " to topic '%s': %s"
+                    % (message_id, topic, error))
             except (MQTTException, PahoMQTTException, ValueError) as e:
                 syslog.syslog(
                     syslog.LOG_DEBUG,
