@@ -205,14 +205,21 @@ class MQTTThread(RESTThread):
         "Connect to the MQTT broker."
         syslog.syslog(
             syslog.LOG_INFO,
-            "restx: %s: Trying to connect to broker: %s on port %s..."
+            "restx: %s: Trying to connect to broker: %s on port %d..."
             % (self.protocol_name, self.host, self.port))
 
         def on_connect(client, userdata, flags, return_code):
+            if return_code == 0:
+                syslog.syslog(
+                    syslog.LOG_INFO,
+                    "restx: %s: Connected to broker '%s' on port %d "
+                    "(return code: %d)"
+                    % (self.protocol_name, self.host, self.port, return_code))
+
             if return_code != 0:
                 syslog.syslog(
                     syslog.LOG_ERR,
-                    "restx: %s: Could not connect to broker: %s on port %s "
+                    "restx: %s: Could not connect to broker '%s' on port %d "
                     "(return code: %d)"
                     % (self.protocol_name, self.host, self.port, return_code))
 
@@ -230,10 +237,17 @@ class MQTTThread(RESTThread):
         super(MQTTThread, self).run()
 
         def on_disconnect(client, userdata, flags, return_code):
+            if return_code == 0:
+                syslog.syslog(
+                    syslog.LOG_INFO,
+                    "restx: %s: Succesfully disconnected from broker '%s' "
+                    "(return code: %d)"
+                    % (self.protocol_name, self.host, return_code))
+
             if return_code != 0:
                 syslog.syslog(
                     syslog.LOG_ERR,
-                    "restx: %s: Unexpected disconnection from broker: %s "
+                    "restx: %s: Unexpected disconnection from broker '%s' "
                     "(return code: %d)"
                     % (self.protocol_name, self.host, return_code))
 
