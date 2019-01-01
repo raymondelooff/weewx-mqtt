@@ -37,6 +37,9 @@ class MQTT(StdRESTful):
         mqtt_config_dict = config_dict['StdRESTful']['MQTT']
         mqtt_config_dict.pop('enable')
 
+        client_id = mqtt_config_dict.pop(
+            'client_id', gethostname())
+
         if 'binding' in mqtt_config_dict:
             manager_dict = get_manager_dict_from_config(
                 config_dict, mqtt_config_dict.get('binding'))
@@ -64,18 +67,20 @@ class MQTT(StdRESTful):
             self.loop_thread = MQTTThread(
                 self.loop_queue,
                 loop_topic_format,
-                loop_qos,
-                loop_retain,
+                '%s-loop' % client_id,
                 observation_configs=observation_configs,
+                default_qos=loop_qos,
+                default_retain=loop_retain,
                 manager_dict=manager_dict,
                 **mqtt_config_dict)
 
             self.archive_thread = MQTTThread(
                 self.archive_queue,
                 archive_topic_format,
-                archive_qos,
-                archive_retain,
+                '%s-archive' % client_id,
                 observation_configs=observation_configs,
+                default_qos=archive_qos,
+                default_retain=archive_retain,
                 manager_dict=manager_dict,
                 **mqtt_config_dict)
         except TypeError as e:
@@ -103,9 +108,7 @@ class MQTTThread(RESTThread):
     def __init__(self,
                  queue,
                  topic_format,
-                 default_qos=0,
-                 default_retain=False,
-                 client_id=None,
+                 client_id,
                  host='localhost',
                  port=1883,
                  keepalive=60,
@@ -115,6 +118,8 @@ class MQTTThread(RESTThread):
                  ca_path=None,
                  tls_insecure=False,
                  observation_configs=None,
+                 default_qos=0,
+                 default_retain=False,
                  manager_dict=None,
                  post_interval=None,
                  max_backlog=maxint,
@@ -163,14 +168,6 @@ class MQTTThread(RESTThread):
     def create_client(self, client_id, protocol_version):
         "Create the MQTT client."
         import paho.mqtt.client as mqtt
-
-        if client_id is None:
-            client_id = '%s@%s' % (self.softwaretype, gethostname())
-
-            syslog.syslog(
-                syslog.LOG_DEBUG,
-                "restx: %s: Using generated client ID: %s"
-                % (self.protocol_name, client_id))
 
         if protocol_version == '3.1.1':
             protocol = mqtt.MQTTv311
