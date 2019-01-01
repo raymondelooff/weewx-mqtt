@@ -42,7 +42,7 @@ class MQTT(StdRESTful):
 
         if 'binding' in mqtt_config_dict:
             manager_dict = get_manager_dict_from_config(
-                config_dict, mqtt_config_dict.get('binding'))
+                config_dict, mqtt_config_dict.pop('binding'))
         else:
             manager_dict = None
 
