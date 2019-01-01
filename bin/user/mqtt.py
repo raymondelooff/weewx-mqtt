@@ -151,7 +151,6 @@ class MQTTThread(RESTThread):
         self.keepalive = to_int(keepalive)
         self.observation_configs = observation_configs
 
-        self.current_values = dict()
         self.default_observation_config = {
             'qos': to_int(default_qos),
             'retain': to_bool(default_retain)
@@ -255,8 +254,6 @@ class MQTTThread(RESTThread):
         record = to_METRICWX(record)
         # ... then pop the timestamp ...
         timestamp = record.pop('dateTime')
-        # ... then filter the differences ...
-        record = self._diff_record(record)
 
         if self.skip_upload:
             raise AbortedPost()
@@ -336,38 +333,6 @@ class MQTTThread(RESTThread):
                 % message_id)
 
         raise FailedPost('Failed to publish message with unknown ID')
-
-    def _diff_record(self, record):
-        """
-        Returns the observations that are different
-        than previous observations.
-        """
-        result = dict()
-
-        for observation, value in record.iteritems():
-            diff = self._diff_record_observation(observation, value)
-
-            if diff is None:
-                continue
-
-            result[observation] = diff
-
-        return result
-
-    def _diff_record_observation(self, observation, value):
-        """
-        Returns the observation if the given value
-        is not equal to the existing value. If the given
-        value is equal to the existing value, None is returned.
-        """
-        current_value = self.current_values.get(observation, None)
-
-        if current_value == value:
-            return None
-
-        self.current_values[observation] = value
-
-        return value
 
     def _get_observation_config(self, observation):
         """
