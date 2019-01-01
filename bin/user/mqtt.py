@@ -303,9 +303,8 @@ class MQTTThread(RESTThread):
 
         syslog.syslog(
             syslog.LOG_DEBUG,
-            "restx: %s: Publishing to topic: %s."
-            "Payload: %s. QoS: %d. Retain: %s."
-            % (self.protocol_name, topic, payload_json, qos, retain))
+            "restx: %s: Publishing to topic '%s' (QoS: %d, Retain: %s): %s"
+            % (self.protocol_name, topic, qos, retain, payload_json))
 
         for _count in range(self.max_tries):
             try:
