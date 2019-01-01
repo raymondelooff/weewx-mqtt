@@ -237,7 +237,7 @@ class MQTTThread(RESTThread):
             if return_code == 0:
                 syslog.syslog(
                     syslog.LOG_INFO,
-                    "restx: %s: Succesfully disconnected from broker '%s' "
+                    "restx: %s: Successfully disconnected from broker '%s' "
                     "(return code: %d)"
                     % (self.protocol_name, self.host, return_code))
 
