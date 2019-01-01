@@ -306,6 +306,8 @@ class MQTTThread(RESTThread):
             "restx: %s: Publishing to topic '%s' (QoS: %d, Retain: %s): %s"
             % (self.protocol_name, topic, qos, retain, payload_json))
 
+        message_id = None
+
         for _count in range(self.max_tries):
             try:
                 message_info = self.mqtt_client.publish(
@@ -316,6 +318,7 @@ class MQTTThread(RESTThread):
                     return
 
                 error = self._parse_return_code(message_info.rc)
+                message_id = message_info.mid
 
                 raise MQTTException(
                     "Could not publish to topic '%s': %s"
@@ -326,7 +329,12 @@ class MQTTThread(RESTThread):
                     "restx: %s: Attempt %d. Error: %s"
                     % (self.protocol_name, _count + 1, e))
 
-        raise FailedPost(e)
+        if message_id is not None:
+            raise FailedPost(
+                "Failed to publish message with ID '%d'"
+                % message_id)
+
+        raise FailedPost('Failed to publish message with unknown ID')
 
     def _diff_record(self, record):
         """
