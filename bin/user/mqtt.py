@@ -66,21 +66,21 @@ class MQTT(StdRESTful):
         try:
             self.loop_thread = MQTTThread(
                 self.loop_queue,
-                loop_topic_format,
                 '%s-loop' % client_id,
                 observation_configs=observation_configs,
                 default_qos=loop_qos,
                 default_retain=loop_retain,
+                topic_format=loop_topic_format,
                 manager_dict=manager_dict,
                 **mqtt_config_dict)
 
             self.archive_thread = MQTTThread(
                 self.archive_queue,
-                archive_topic_format,
                 '%s-archive' % client_id,
                 observation_configs=observation_configs,
                 default_qos=archive_qos,
                 default_retain=archive_retain,
+                topic_format=archive_topic_format,
                 manager_dict=manager_dict,
                 **mqtt_config_dict)
         except TypeError as e:
@@ -107,7 +107,6 @@ class MQTT(StdRESTful):
 class MQTTThread(RESTThread):
     def __init__(self,
                  queue,
-                 topic_format,
                  client_id,
                  host='localhost',
                  port=1883,
@@ -120,6 +119,7 @@ class MQTTThread(RESTThread):
                  observation_configs=None,
                  default_qos=0,
                  default_retain=False,
+                 topic_format='%s',
                  manager_dict=None,
                  post_interval=None,
                  max_backlog=maxint,
