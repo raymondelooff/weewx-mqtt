@@ -454,7 +454,7 @@ class MQTTThread(RESTThread):
         else:
             error = 'Unknown'
 
-        return error + ' (return code %s)' % return_code
+        return '%s (return code %s)' % (error, return_code)
 
 
 class MQTTException(Exception):
