@@ -190,8 +190,8 @@ class MQTTThread(RESTThread):
         if ca_path is not None:
             mqtt_client.tls_set(ca_path)
 
-        if tls_insecure is True:
-            mqtt_client.tls_insecure_set(True)
+        if tls_insecure is not None:
+            mqtt_client.tls_insecure_set(tls_insecure)
 
         if self.log_success is True and self.log_failure is True:
             mqtt_client.enable_logger()
