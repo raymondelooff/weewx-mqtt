@@ -371,7 +371,8 @@ class MQTTThread(RESTThread):
         name_format = self.observation_configs.get('output_name_format')
 
         if name_format == 'snake_case':
-            return re_sub('(?!^)([A-Z]+)', r'_\1', observation).lower()
+            s1 = re_sub('(.)([A-Z][a-z]+)', r'\1_\2', observation)
+            return re_sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
 
         return observation
 
