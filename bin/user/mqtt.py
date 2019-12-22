@@ -289,7 +289,7 @@ class MQTTThread(RESTThread):
 
         try:
             self.publish_record(timestamp, record)
-        except ValueError as e:
+        except Exception as e:
             raise FailedPost(e)
 
     def publish_record(self, timestamp, record):
@@ -312,7 +312,10 @@ class MQTTThread(RESTThread):
             payload['observation'] = observation_output_name
             payload['value'] = value
 
-            self._mqtt_publish(topic, payload, qos, retain)
+            try:
+                self._mqtt_publish(topic, payload, qos, retain)
+            except MQTTException:
+                pass
 
     @backoff.on_exception(backoff.expo,
                           MQTTException,
@@ -332,43 +335,38 @@ class MQTTThread(RESTThread):
                 message_info = self.mqtt_client.publish(
                     topic, payload_json, qos, retain)
 
-                if message_info.rc == mqtt.MQTT_ERR_AGAIN:
-                    raise MQTTException(
-                        "Could not publish message"
-                        " to topic '%s': MQTT_ERR_AGAIN"
-                        % (topic))
-                elif message_info.rc == mqtt.MQTT_ERR_SUCCESS:
+                if message_info.rc == mqtt.MQTT_ERR_SUCCESS:
                     return
+
+                if message_info.rc == mqtt.MQTT_ERR_AGAIN:
+                    continue
 
                 error = self._parse_return_code(message_info.rc)
 
+                syslog.syslog(
+                    syslog.LOG_DEBUG,
+                    "%s: Error: %s"
+                    % (self.protocol_name, error))
+
                 raise MQTTException(
-                    "Could not publish message"
-                    " to topic '%s': %s"
+                    "Publish to topic '%s' failed: %s"
                     % (topic, error))
-            except MQTTException as e:
+            except PahoMQTTException as e:
                 syslog.syslog(
                     syslog.LOG_DEBUG,
                     "%s: Error: %s"
                     % (self.protocol_name, e))
 
-                raise
-            except (PahoMQTTException, ValueError) as e:
-                syslog.syslog(
-                    syslog.LOG_DEBUG,
-                    "%s: Error: %s"
-                    % (self.protocol_name, e))
-
                 raise MQTTException(
                     "Could not publish message"
                     " to topic '%s': %s"
-                    % (topic, error))
+                    % (topic, e))
 
         # Failed to publish message. If QoS is set to zero, ignore it.
         if qos == 0:
             return
 
-        raise FailedPost('Failed to publish message')
+        raise MQTTException("Publish to topic '%s' failed" % topic)
 
     def _get_observation_config(self, observation):
         """
