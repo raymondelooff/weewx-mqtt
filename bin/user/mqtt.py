@@ -350,11 +350,11 @@ class MQTTThread(RESTThread):
                     " to topic '%s': %s"
                     % (topic, error))
 
-        # Failed to publish. If QOS is set to zero, ignore it.
+        # Failed to publish message. If QoS is set to zero, ignore it.
         if qos == 0:
             return
 
-        raise FailedPost('Failed to publish')
+        raise FailedPost('Failed to publish message')
 
     def _get_observation_config(self, observation):
         """
