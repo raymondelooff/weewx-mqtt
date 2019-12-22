@@ -9,6 +9,7 @@ flake8 = "*"
 
 [packages]
 paho-mqtt = "==1.*"
+backoff = "==1.*"
 
 [requires]
 python_version = "2.7"
