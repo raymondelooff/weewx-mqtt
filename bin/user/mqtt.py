@@ -227,14 +227,27 @@ class MQTTThread(RESTThread):
 
         self.mqtt_client.on_connect = on_connect
 
-        self.mqtt_client.connect(self.host, self.port, self.keepalive)
-        self.mqtt_client.loop_start()
+        try:
+            self.mqtt_client.connect(self.host, self.port, self.keepalive)
+            self.mqtt_client.loop_start()
+        except Exception as e:
+            raise MQTTException("Error connecting to broker: %s" % e)
 
         return self.mqtt_client
 
     def run(self):
         "Run the thread and disconnect the MQTT client on shutdown."
-        self.connect_client()
+        while True:
+            try:
+                self.connect_client()
+                break
+            except MQTTException as e:
+                syslog.syslog(
+                    syslog.LOG_ERR,
+                    "%s: Could not connect to broker '%s' on port %d: %s"
+                    % (self.protocol_name, self.host, self.port, e))
+
+                continue
 
         super(MQTTThread, self).run()
 
