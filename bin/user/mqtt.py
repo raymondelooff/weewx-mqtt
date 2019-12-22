@@ -311,10 +311,7 @@ class MQTTThread(RESTThread):
         import paho.mqtt.client as mqtt
         from paho.mqtt import MQTTException as PahoMQTTException
 
-        try:
-            payload_json = json_dumps(payload)
-        except ValueError as e:
-            raise FailedPost(e)
+        payload_json = json_dumps(payload)
 
         for _count in range(self.max_tries):
             try:
