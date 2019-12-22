@@ -302,7 +302,8 @@ class MQTTThread(RESTThread):
             self._mqtt_publish(topic, payload, qos, retain)
 
     @backoff.on_exception(backoff.expo,
-                          MQTTException)
+                          MQTTException,
+                          max_time=300)
     def _mqtt_publish(self, topic, payload, qos, retain):
         """
         Try to publish the given payload up to
