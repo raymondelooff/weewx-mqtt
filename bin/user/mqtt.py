@@ -183,8 +183,7 @@ class MQTTThread(RESTThread):
         else:
             protocol = mqtt.MQTTv5
 
-        mqtt_client = mqtt.Client(client_id, clean_session=False,
-                                  userdata=None, protocol=protocol)
+        mqtt_client = mqtt.Client(client_id, userdata=None, protocol=protocol)
 
         return mqtt_client
 
