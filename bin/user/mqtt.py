@@ -213,18 +213,20 @@ class MQTTThread(RESTThread):
             % (self.protocol_name, self.host, self.port))
 
         def on_connect(client, userdata, flags, return_code):
+            from paho.mqtt.client import connack_string
+
+            return_status = connack_string(return_code)
+
             if return_code == 0:
                 syslog.syslog(
                     syslog.LOG_INFO,
-                    "%s: Connected to broker '%s' on port %d "
-                    "(return code: %d)"
-                    % (self.protocol_name, self.host, self.port, return_code))
+                    "%s: Connected to broker '%s' on port %d: %s"
+                    % (self.protocol_name, self.host, self.port, return_status))
             else:
                 syslog.syslog(
                     syslog.LOG_ERR,
-                    "%s: Could not connect to broker '%s' on port %d "
-                    "(return code: %d)"
-                    % (self.protocol_name, self.host, self.port, return_code))
+                    "%s: Could not connect to broker '%s' on port %d: %s"
+                    % (self.protocol_name, self.host, self.port, return_status))
 
         self.mqtt_client.on_connect = on_connect
 
