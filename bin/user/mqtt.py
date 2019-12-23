@@ -217,8 +217,7 @@ class MQTTThread(RESTThread):
                     "%s: Connected to broker '%s' on port %d "
                     "(return code: %d)"
                     % (self.protocol_name, self.host, self.port, return_code))
-
-            if return_code != 0:
+            else:
                 syslog.syslog(
                     syslog.LOG_ERR,
                     "%s: Could not connect to broker '%s' on port %d "
@@ -314,8 +313,8 @@ class MQTTThread(RESTThread):
 
             try:
                 self._mqtt_publish(topic, payload, qos, retain)
-            except MQTTException:
-                pass
+            except MQTTException as e:
+                raise FailedPost(e)
 
     @backoff.on_exception(backoff.expo,
                           MQTTException,
@@ -337,8 +336,7 @@ class MQTTThread(RESTThread):
 
                 if message_info.rc == mqtt.MQTT_ERR_SUCCESS:
                     return
-
-                if message_info.rc == mqtt.MQTT_ERR_AGAIN:
+                elif message_info.rc == mqtt.MQTT_ERR_AGAIN:
                     continue
 
                 error = self._parse_return_code(message_info.rc)
