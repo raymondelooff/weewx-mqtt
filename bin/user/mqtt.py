@@ -174,12 +174,14 @@ class MQTTThread(RESTThread):
         "Create the MQTT client."
         import paho.mqtt.client as mqtt
 
-        if protocol_version == '3.1.1':
-            protocol = mqtt.MQTTv311
-        elif protocol_version == '3.1':
+        if protocol_version == '3.1':
             protocol = mqtt.MQTTv31
-        else:
+        elif protocol_version == '3.1.1':
             protocol = mqtt.MQTTv311
+        elif protocol_version == '5':
+            protocol = mqtt.MQTTv5
+        else:
+            protocol = mqtt.MQTTv5
 
         mqtt_client = mqtt.Client(client_id, clean_session=False,
                                   userdata=None, protocol=protocol)
