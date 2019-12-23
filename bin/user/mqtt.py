@@ -254,19 +254,20 @@ class MQTTThread(RESTThread):
         super(MQTTThread, self).run()
 
         def on_disconnect(client, userdata, flags, return_code):
+            from paho.mqtt.client import connack_string
+
+            return_status = connack_string(return_code)
+
             if return_code == 0:
                 syslog.syslog(
                     syslog.LOG_INFO,
-                    "%s: Successfully disconnected from broker '%s' "
-                    "(return code: %d)"
-                    % (self.protocol_name, self.host, return_code))
-
-            if return_code != 0:
+                    "%s: Successfully disconnected from broker '%s': %s"
+                    % (self.protocol_name, self.host, return_status))
+            else:
                 syslog.syslog(
                     syslog.LOG_ERR,
-                    "%s: Unexpected disconnection from broker '%s' "
-                    "(return code: %d)"
-                    % (self.protocol_name, self.host, return_code))
+                    "%s: Unexpected disconnection from broker '%s': %s"
+                    % (self.protocol_name, self.host, return_status))
 
         self.mqtt_client.on_disconnect = on_disconnect
 
