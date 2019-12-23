@@ -118,7 +118,7 @@ class MQTTThread(RESTThread):
                  keepalive=60,
                  username=None,
                  password=None,
-                 protocol='3.1.1',
+                 protocol_version='5',
                  ca_path=None,
                  tls_insecure=False,
                  observation_configs=None,
@@ -166,7 +166,7 @@ class MQTTThread(RESTThread):
             'retain': to_bool(default_retain)
         }
 
-        self.mqtt_client = self.create_client(client_id, protocol)
+        self.mqtt_client = self.create_client(client_id, protocol_version)
         self.configure_client(self.mqtt_client, username, password,
                               ca_path, to_bool(tls_insecure))
 
