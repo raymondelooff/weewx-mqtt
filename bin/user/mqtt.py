@@ -339,8 +339,9 @@ class MQTTThread(RESTThread):
 
                 if message_info.rc == mqtt.MQTT_ERR_SUCCESS:
                     return
-                elif message_info.rc == mqtt.MQTT_ERR_AGAIN:
-                    continue
+
+                if qos == 0:
+                    return
 
                 error = self._parse_return_code(message_info.rc)
 
