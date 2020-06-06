@@ -188,15 +188,13 @@ class MQTTThread(RESTThread):
         return mqtt_client
 
     def configure_client(self, mqtt_client, username=None, password=None,
-                         ca_path=None, tls_insecure=None):
+                         ca_path=None, tls_insecure=False):
         "Configure the MQTT client."
         if username is not None:
             mqtt_client.username_pw_set(username, password)
 
         if ca_path is not None:
             mqtt_client.tls_set(ca_path)
-
-        if tls_insecure is not None:
             mqtt_client.tls_insecure_set(tls_insecure)
 
         if self.log_success is True and self.log_failure is True:
