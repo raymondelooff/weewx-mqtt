@@ -4,8 +4,8 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [packages]
-paho-mqtt = ">=1.5"
-backoff = "==1.*"
+paho-mqtt = "~=1.5"
+backoff = "~=1.10"
 
 [dev-packages]
 pylint = "<2.0.0"
