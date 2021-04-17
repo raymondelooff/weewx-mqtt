@@ -5,7 +5,7 @@
 # This extension is open-source software licensed under the GPLv3 license.
 
 
-__version__ = 0.3
+__version__ = 0.4
 
 import syslog
 import backoff

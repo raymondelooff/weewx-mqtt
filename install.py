@@ -4,7 +4,7 @@
 # Copyright (c) 2018-2021 Raymon de Looff <raydelooff@gmail.com>
 # This extension is open-source software licensed under the GPLv3 license.
 
-__version__ = 0.3
+__version__ = 0.4
 
 
 from setup import ExtensionInstaller
