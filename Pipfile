@@ -3,13 +3,13 @@ name = "pypi"
 url = "https://pypi.org/simple"
 verify_ssl = true
 
-[dev-packages]
-pylint = "<2.0.0"
-flake8 = "*"
-
 [packages]
 paho-mqtt = ">=1.5"
 backoff = "==1.*"
+
+[dev-packages]
+pylint = "<2.0.0"
+flake8 = "*"
 
 [requires]
 python_version = "2.7"
