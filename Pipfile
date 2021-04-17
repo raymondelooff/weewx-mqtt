@@ -8,7 +8,7 @@ paho-mqtt = "~=1.5"
 backoff = "~=1.10"
 
 [dev-packages]
-pylint = "<2.0.0"
+pylint = "*"
 flake8 = "*"
 
 [requires]
