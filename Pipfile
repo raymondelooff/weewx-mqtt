@@ -6,6 +6,7 @@ verify_ssl = true
 [packages]
 paho-mqtt = "~=1.5"
 backoff = "~=1.10"
+six = "~=1.0"
 
 [dev-packages]
 pylint = "*"

@@ -12,10 +12,10 @@ import backoff
 from copy import copy
 from datetime import datetime
 from json import dumps as json_dumps
-from Queue import Queue
 from re import sub as re_sub
+from six import MAXSIZE
+from six.moves import queue
 from socket import gethostname
-from sys import maxint
 
 from weeutil.weeutil import to_bool, to_int
 from weewx import NEW_ARCHIVE_RECORD, NEW_LOOP_PACKET
@@ -54,13 +54,13 @@ class MQTT(StdRESTful):
         default_qos = mqtt_config_dict.pop('default_qos', 0)
         default_retain = mqtt_config_dict.pop('default_retain', False)
 
-        self.loop_queue = Queue()
+        self.loop_queue = queue.Queue()
         loop_topic_format = mqtt_config_dict.pop('loop_topic_format',
                                                  'weewx/loop/%s')
         loop_qos = mqtt_config_dict.pop('loop_qos', default_qos)
         loop_retain = mqtt_config_dict.pop('loop_retain', default_retain)
 
-        self.archive_queue = Queue()
+        self.archive_queue = queue.Queue()
         archive_topic_format = mqtt_config_dict.pop('archive_topic_format',
                                                     'weewx/archive/%s')
         archive_qos = mqtt_config_dict.pop('archive_qos', default_qos)
@@ -127,7 +127,7 @@ class MQTTThread(RESTThread):
                  topic_format='%s',
                  manager_dict=None,
                  post_interval=None,
-                 max_backlog=maxint,
+                 max_backlog=MAXSIZE,
                  stale=None,
                  log_success=False,
                  log_failure=True,
