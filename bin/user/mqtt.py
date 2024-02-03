@@ -4,7 +4,6 @@
 # Copyright (c) 2018-2024 Raymon de Looff <raydelooff@gmail.com>
 # This extension is open-source software licensed under the GPLv3 license.
 
-from __future__ import absolute_import
 import sys
 import syslog
 import backoff
