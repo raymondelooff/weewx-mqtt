@@ -4,6 +4,9 @@
 # Copyright (c) 2018-2021 Raymon de Looff <raydelooff@gmail.com>
 # This extension is open-source software licensed under the GPLv3 license.
 
+
+__version__ = 0.5
+
 from __future__ import absolute_import
 import sys
 import syslog
@@ -141,7 +144,7 @@ class MQTTThread(RESTThread):
                  max_tries=3,
                  retry_wait=5,
                  retry_login=3600,
-                 softwaretype='weewx-mqtt',
+                 softwaretype='weewx-mqtt-%s' % __version__,
                  skip_upload=False):
         """
         Constructor.
