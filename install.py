@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# Copyright (c) 2018-2021 Raymon de Looff <raydelooff@gmail.com>
+# Copyright (c) 2018-2024 Raymon de Looff <raydelooff@gmail.com>
 # This extension is open-source software licensed under the GPLv3 license.
 
 __version__ = 0.5
