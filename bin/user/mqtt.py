@@ -5,14 +5,13 @@
 # This extension is open-source software licensed under the GPLv3 license.
 
 from __future__ import absolute_import
+import sys
 import syslog
 import backoff
 from copy import copy
 from datetime import datetime
 from json import dumps as json_dumps
 from re import sub as re_sub
-from six import MAXSIZE
-from six.moves import queue
 from socket import gethostname
 
 from weeutil.weeutil import to_bool, to_int
@@ -21,6 +20,15 @@ from weewx.manager import get_manager_dict_from_config
 from weewx.restx import (AbortedPost, FailedPost, RESTThread, StdRESTful,
                          check_enable)
 from weewx.units import to_METRICWX
+
+# deal with differences between python 2 and python 3
+try:
+    # Python 3
+    import queue
+except ImportError:
+    # Python 2
+    # noinspection PyUnresolvedReferences
+    import Queue as queue
 
 
 class MQTTException(Exception):
@@ -125,7 +133,7 @@ class MQTTThread(RESTThread):
                  topic_format='%s',
                  manager_dict=None,
                  post_interval=None,
-                 max_backlog=MAXSIZE,
+                 max_backlog=sys.maxsize,
                  stale=None,
                  log_success=False,
                  log_failure=True,
