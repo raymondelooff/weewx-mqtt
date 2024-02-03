@@ -4,9 +4,6 @@
 # Copyright (c) 2018-2021 Raymon de Looff <raydelooff@gmail.com>
 # This extension is open-source software licensed under the GPLv3 license.
 
-
-__version__ = 0.5
-
 from __future__ import absolute_import
 import sys
 import syslog
@@ -80,22 +77,22 @@ class MQTT(StdRESTful):
         try:
             self.loop_thread = MQTTThread(
                 self.loop_queue,
+                manager_dict,
                 '%s-loop' % client_id,
                 observation_configs=observation_configs,
                 default_qos=loop_qos,
                 default_retain=loop_retain,
                 topic_format=loop_topic_format,
-                manager_dict=manager_dict,
                 **mqtt_config_dict)
 
             self.archive_thread = MQTTThread(
                 self.archive_queue,
+                manager_dict,
                 '%s-archive' % client_id,
                 observation_configs=observation_configs,
                 default_qos=archive_qos,
                 default_retain=archive_retain,
                 topic_format=archive_topic_format,
-                manager_dict=manager_dict,
                 **mqtt_config_dict)
         except TypeError as e:
             syslog.syslog(
@@ -120,7 +117,8 @@ class MQTT(StdRESTful):
 
 class MQTTThread(RESTThread):
     def __init__(self,
-                 queue,
+                 q,
+                 manager_dict,
                  client_id,
                  host='localhost',
                  port=1883,
@@ -134,22 +132,18 @@ class MQTTThread(RESTThread):
                  default_qos=0,
                  default_retain=False,
                  topic_format='%s',
-                 manager_dict=None,
                  post_interval=None,
                  max_backlog=sys.maxsize,
                  stale=None,
                  log_success=False,
                  log_failure=True,
-                 timeout=10,
+                 timeout=60,
                  max_tries=3,
-                 retry_wait=5,
-                 retry_login=3600,
-                 softwaretype='weewx-mqtt-%s' % __version__,
-                 skip_upload=False):
+                 retry_wait=5):
         """
         Constructor.
         """
-        super(MQTTThread, self).__init__(queue,
+        super(MQTTThread, self).__init__(q,
                                          protocol_name='MQTT',
                                          manager_dict=manager_dict,
                                          post_interval=post_interval,
@@ -159,10 +153,7 @@ class MQTTThread(RESTThread):
                                          log_failure=log_failure,
                                          timeout=timeout,
                                          max_tries=max_tries,
-                                         retry_wait=retry_wait,
-                                         retry_login=retry_login,
-                                         softwaretype=softwaretype,
-                                         skip_upload=skip_upload)
+                                         retry_wait=retry_wait)
 
         self.topic_format = topic_format
         self.host = host
