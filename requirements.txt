@@ -1,2 +1,2 @@
 backoff>=1.10
-paho-mqtt>=1.5
+paho-mqtt==1.6.*
