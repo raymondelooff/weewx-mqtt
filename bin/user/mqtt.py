@@ -301,7 +301,7 @@ class MQTTThread(RESTThread):
             'unix_timestamp': timestamp
         }
 
-        for observation, value in record.iteritems():
+        for observation, value in record.items():
             observation_config = self._get_observation_config(observation)
             observation_output_name = observation_config.get(
                 'output_name', self._format_observation_type(observation))
